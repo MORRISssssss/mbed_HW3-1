@@ -35,28 +35,13 @@ int slave()
             if (rw == 1){
                 value = device.read();
                 storedValue[addr] = value;
-                printf("Device: Store %0x in address %0x.\n", storedValue[addr], addr);
+                printf("Device: Store 0x%0x in address 0x%0x.\n", storedValue[addr], addr);
             }else{
-                printf("Device: Reply %0x in address %0x.\n", storedValue[addr], addr);
+                printf("Device: Reply 0x%0x from address %0x.\n", storedValue[addr], addr);
                 device.reply(storedValue[addr]);
                 device.read();
                 led = !led;
             }
-
-            /*if (v == 0xAA)
-            {                      //Verify the command
-            v = device.read(); // Read another byte from master
-            printf("Second Read from master: v = %d\n", v);
-            v = v + 10;
-            device.reply(v); // Make this the next reply
-            v = device.read(); // Read again to allow master read back
-            led = !led;      // led turn blue/orange if device receive
-            }
-            else
-            {
-            printf("Default reply to master: 0x00\n");
-            device.reply(0x00); //Reply default value
-            };*/
         }
     }
 }
@@ -67,61 +52,91 @@ int main()
 
     int cmd;
     int response;
+    uint8_t addr;
+    uint16_t value;
     spi.format(16, 3);
     spi.frequency(1000000);
 
     cs = 1;
+
+    // Write 0xabcd into address 0x1f
     cs = 0;
-    printf("Main: Write a value in address 1f. \n");
-    cmd = commandGenerate(1, 0x1f);
+    addr = 0x1f;
+    printf("Main: Write a value in address 0x%0x. \n", addr);
+    cmd = commandGenerate(1, addr);
     spi.write(cmd);
     ThisThread::sleep_for(100ms);
-    printf("Main: value = abcd. \n");
-    spi.write(0xabcd);
+    value = 0xabcd;
+    printf("Main: The value is 0x%0x. \n", value);
+    spi.write(value);
     ThisThread::sleep_for(100ms);
     cs = 1;
+    printf("\n");
 
+    // Write 0x34d into 0x43
     cs = 0;
-    printf("Main: Read from address 1f. \n");
-    cmd = commandGenerate(0, 0x1f);
+    addr = 0x43;
+    printf("Main: Write a value in address 0x%0x. \n", addr);
+    cmd = commandGenerate(1, addr);
+    spi.write(cmd);
+    ThisThread::sleep_for(100ms);
+    value = 0x34d;
+    printf("Main: The value is 0x%0x. \n", value);
+    spi.write(value);
+    ThisThread::sleep_for(100ms);
+    cs = 1;
+    printf("\n");
+    
+    // Receive 0xabcd from 0x1f
+    cs = 0;
+    addr = 0x1f;
+    printf("Main: Read from address 0x%0x. \n", addr);
+    cmd = commandGenerate(0, addr);
     spi.write(cmd);
     ThisThread::sleep_for(100ms);
     response = spi.write(0);
     ThisThread::sleep_for(100ms);
-    printf("Main: Receive %0x. \n", response);
-
-    /*
-    // Setup the spi for 9 bit data, high steady state clock,
-    // second edge capture, with a 1MHz clock rate
-    spi.format(, 3);
-    spi.frequency(1000000);
-
+    printf("Main: Receive 0x%0x. \n", response);
     cs = 1;
+    printf("\n");
+
+    // Receive 0x34d from 0x43
     cs = 0;
+    addr = 0x43;
+    printf("Main: Read from address 0x%0x. \n", addr);
+    cmd = commandGenerate(0, addr);
+    spi.write(cmd);
+    ThisThread::sleep_for(100ms);
+    response = spi.write(0);
+    ThisThread::sleep_for(100ms);
+    printf("Main: Receive 0x%0x. \n", response);
+    cs = 1;
+    printf("\n");
 
-    for(int i=0; i<5; ++i){ //Run for 5 times
-        // Chip must be deselected
-        cs = 1;
-        // Select the device by seting chip select low
-        cs = 0;
+    // Write 0x65ed into 0x43
+    cs = 0;
+    addr = 0x43;
+    printf("Main: Write a value in address 0x%0x. \n", addr);
+    cmd = commandGenerate(1, addr);
+    spi.write(cmd);
+    ThisThread::sleep_for(100ms);
+    value = 0x65ed;
+    printf("Main: The value is 0x%0x. \n", value);
+    spi.write(value);
+    ThisThread::sleep_for(100ms);
+    cs = 1;
+    printf("\n");
 
-        printf("Send handshaking codes.\n");
-
-        int response = spi.write(0xAA); //Send ID
-        cs = 1;                       // Deselect the device
-        ThisThread::sleep_for(100ms); //Wait for debug print
-        printf("First response from slave = %d\n", response);
-
-        // Select the device by seting chip select low
-        cs = 0;
-        printf("Send number = %d\n", number);
-
-        spi.write(number); //Send number to slave
-        ThisThread::sleep_for(100ms); //Wait for debug print
-        response = spi.write(number); //Read slave reply
-        ThisThread::sleep_for(100ms); //Wait for debug print
-        printf("Second response from slave = %d\n", response);
-        cs = 1; // Deselect the device
-        number += 1;
-    }*/
+    // Receive 0x65ed from 0x43
+    cs = 0;
+    addr = 0x43;
+    printf("Main: Read from address 0x%0x. \n", addr);
+    cmd = commandGenerate(0, addr);
+    spi.write(cmd);
+    ThisThread::sleep_for(100ms);
+    response = spi.write(0);
+    ThisThread::sleep_for(100ms);
+    printf("Main: Receive 0x%0x. \n", response);
+    cs = 1;
+    printf("\n");
 }
